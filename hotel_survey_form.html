@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>現地調査フォーム</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F8F8F7;--surface:#fff;--border:#DDDCD4;--border2:#C8C7BF;
+  --text1:#1a1a18;--text2:#5F5E5A;--text3:#888780;
+  --info-bg:#E6F1FB;--info-text:#185FA5;--info-border:#85B7EB;
+  --danger:#A32D2D;--success:#3B6D11;
+  --radius:10px;--radius-sm:7px;
+}
+body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku Gothic ProN',sans-serif;color:var(--text1);padding-bottom:2rem}
+header{background:var(--surface);border-bottom:0.5px solid var(--border);padding:.85rem 1rem;display:flex;align-items:center;gap:.6rem;position:sticky;top:0;z-index:10}
+header i{font-size:20px;color:var(--info-text)}
+header h1{font-size:17px;font-weight:600}
+.wrap{padding:.75rem;max-width:480px;margin:0 auto}
+.section{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:.75rem}
+.sec-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.7rem;display:flex;align-items:center;gap:5px}
+.sec-title i{font-size:14px}
+.badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:var(--info-bg);color:var(--info-text);margin-left:5px;letter-spacing:0}
+.field{margin-bottom:.65rem}
+.field label{font-size:13px;color:var(--text2);display:block;margin-bottom:3px}
+.field input,.field select,.field textarea{
+  width:100%;padding:10px 12px;border:0.5px solid var(--border2);
+  border-radius:var(--radius-sm);font-size:16px;background:var(--bg);
+  color:var(--text1);outline:none;-webkit-appearance:none;appearance:none;
+}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#378ADD;background:#fff;box-shadow:0 0 0 3px rgba(55,138,221,.12)}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+/* 付帯品テーブル */
+.items-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.items-table col.c-name{width:auto}
+.items-table col.c-qty{width:110px}
+.items-table thead th{font-size:11px;color:var(--text3);font-weight:500;padding:0 0 6px;text-align:left}
+.items-table thead th.qty-col{text-align:center}
+.items-table tbody tr{border-top:0.5px solid var(--border)}
+.items-table tbody tr:first-child{border-top:none}
+.items-table td{padding:6px 0;vertical-align:middle}
+.items-table td.name-cell{font-size:15px;color:var(--text1)}
+.items-table td.qty-cell{text-align:right}
+
+/* +/- ステッパー */
+.stepper{display:inline-flex;align-items:center;border:0.5px solid var(--border2);border-radius:var(--radius-sm);overflow:hidden;height:36px}
+.stepper button{width:36px;height:36px;border:none;background:var(--bg);cursor:pointer;font-size:18px;color:var(--text2);display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+.stepper button:active{background:var(--border)}
+.stepper .val{min-width:34px;text-align:center;font-size:15px;font-weight:500;color:var(--text1);padding:0 2px;border-left:0.5px solid var(--border2);border-right:0.5px solid var(--border2);line-height:36px}
+.stepper.has-val{border-color:var(--info-border)}
+.stepper.has-val .val{color:var(--info-text)}
+.stepper.has-val button{background:var(--info-bg);color:var(--info-text)}
+
+.divider{border:none;border-top:0.5px dashed var(--border2);margin:8px 0}
+.custom-lbl{font-size:12px;color:var(--text3);margin-bottom:6px}
+.custom-row{display:grid;grid-template-columns:1fr 110px 36px;gap:8px;align-items:center;margin-bottom:7px}
+.custom-row input{padding:8px 10px;font-size:15px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg);color:var(--text1);outline:none}
+.custom-row input:focus{border-color:#378ADD;background:#fff;box-shadow:0 0 0 3px rgba(55,138,221,.12)}
+.rm-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;display:flex;align-items:center;justify-content:center;padding:4px;border-radius:5px;-webkit-tap-highlight-color:transparent}
+.rm-btn:active{color:var(--danger)}
+.add-btn{width:100%;padding:9px;border:0.5px dashed var(--border2);border-radius:var(--radius-sm);background:none;cursor:pointer;font-size:14px;color:var(--text2);display:flex;align-items:center;justify-content:center;gap:5px;margin-top:4px;-webkit-tap-highlight-color:transparent}
+.add-btn:active{background:var(--bg)}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:6px}
+.photo-thumb{aspect-ratio:1;border-radius:var(--radius-sm);overflow:hidden;position:relative;background:var(--bg);border:0.5px solid var(--border)}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-del{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.58);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff}
+.photo-add{aspect-ratio:1;border-radius:var(--radius-sm);border:0.5px dashed var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;background:none;font-size:12px;color:var(--text3);-webkit-tap-highlight-color:transparent}
+.photo-add i{font-size:26px}
+.submit-btn{width:100%;padding:15px;background:#185FA5;color:#fff;border:none;border-radius:var(--radius);font-size:17px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:.5rem;-webkit-tap-highlight-color:transparent}
+.submit-btn:active{opacity:.85;transform:scale(.98)}
+.submit-btn i{font-size:20px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:10px 18px;border-radius:var(--radius);font-size:14px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;z-index:999;color:#fff}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <i class="ti ti-clipboard-check"></i>
+  <h1>現地調査フォーム</h1>
+</header>
+<div class="wrap">
+
+<div class="section">
+  <div class="sec-title"><i class="ti ti-building"></i>プロジェクト情報<span class="badge">固定</span></div>
+  <div class="field"><label>物件名</label>
+    <input type="text" id="hotel-name" placeholder="例：ホテル〇〇店">
+  </div>
+  <div class="field"><label>調査日</label>
+    <input type="date" id="survey-date">
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-title"><i class="ti ti-door"></i>部屋情報</div>
+  <div class="row3">
+    <div class="field" style="margin-bottom:0"><label>階数</label>
+      <input type="number" id="floor" placeholder="3" min="1" inputmode="numeric">
+    </div>
+    <div class="field" style="margin-bottom:0"><label>部屋番号</label>
+      <input type="text" id="room-no" placeholder="305">
+    </div>
+    <div class="field" style="margin-bottom:0"><label>部屋タイプ</label>
+      <select id="room-type">
+        <option value="">選択</option>
+        <option value="シングル">シングル</option>
+        <option value="ツイン">ツイン</option>
+        <option value="和洋室">和洋室</option>
+        <option value="和室">和室</option>
+        <option value="スイート">スイート</option>
+        <option value="カプセル">カプセル</option>
+        <option value="その他">その他</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-title"><i class="ti ti-list-check"></i>付帯品・寝具</div>
+  <table class="items-table">
+    <colgroup><col class="c-name"><col class="c-qty"></colgroup>
+    <thead><tr><th>品目</th><th class="qty-col">数量</th></tr></thead>
+    <tbody id="preset-tbody"></tbody>
+  </table>
+  <hr class="divider">
+  <div class="custom-lbl">追加品目（自由記入）</div>
+  <div id="custom-rows"></div>
+  <button class="add-btn" id="add-custom"><i class="ti ti-plus"></i>品目を追加</button>
+</div>
+
+<div class="section">
+  <div class="sec-title"><i class="ti ti-note"></i>備考</div>
+  <div class="field">
+    <textarea id="note" rows="3" placeholder="特記事項・破損・不具合など"></textarea>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-title"><i class="ti ti-camera"></i>部屋の写真</div>
+  <div class="photo-grid" id="photo-grid"></div>
+  <input type="file" id="file-input" accept="image/*" capture="environment" multiple style="display:none">
+</div>
+
+<button class="submit-btn" id="submit-btn">
+  <i class="ti ti-send"></i>送信する
+</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const GAS_URL = 'YOUR_GAS_URL_HERE';
+
+const PRESET_ITEMS = [
+  '枕','枕カバー','掛け布団','掛け布団カバー',
+  'シーツ','敷きパッド','和布団','敷布団','毛布',
+];
+
+let presetQty = {};
+PRESET_ITEMS.forEach(n => presetQty[n] = 0);
+
+let customItems = [];
+let photos = [];
+
+function today(){ return new Date().toISOString().split('T')[0]; }
+document.getElementById('survey-date').value = today();
+
+function makeStepper(name){
+  const wrap = document.createElement('div');
+  wrap.className = 'stepper' + (presetQty[name] > 0 ? ' has-val' : '');
+  wrap.innerHTML = `
+    <button type="button" aria-label="減らす">−</button>
+    <span class="val">${presetQty[name]}</span>
+    <button type="button" aria-label="増やす">＋</button>`;
+  const [btnM, valEl, btnP] = [wrap.children[0], wrap.children[1], wrap.children[2]];
+  btnM.onclick = () => {
+    if(presetQty[name] > 0) presetQty[name]--;
+    valEl.textContent = presetQty[name];
+    wrap.classList.toggle('has-val', presetQty[name] > 0);
+  };
+  btnP.onclick = () => {
+    presetQty[name]++;
+    valEl.textContent = presetQty[name];
+    wrap.classList.add('has-val');
+  };
+  return wrap;
+}
+
+function buildPresetTable(){
+  const tbody = document.getElementById('preset-tbody');
+  tbody.innerHTML = '';
+  PRESET_ITEMS.forEach(name => {
+    const tr = document.createElement('tr');
+    const tdN = document.createElement('td'); tdN.className = 'name-cell'; tdN.textContent = name;
+    const tdQ = document.createElement('td'); tdQ.className = 'qty-cell';
+    tdQ.appendChild(makeStepper(name));
+    tr.appendChild(tdN); tr.appendChild(tdQ);
+    tbody.appendChild(tr);
+  });
+}
+
+function makeCustomStepper(item){
+  const wrap = document.createElement('div');
+  wrap.className = 'stepper' + (item.qty > 0 ? ' has-val' : '');
+  wrap.innerHTML = `
+    <button type="button" aria-label="減らす">−</button>
+    <span class="val">${item.qty}</span>
+    <button type="button" aria-label="増やす">＋</button>`;
+  const [btnM, valEl, btnP] = [wrap.children[0], wrap.children[1], wrap.children[2]];
+  btnM.onclick = () => {
+    if(item.qty > 0) item.qty--;
+    valEl.textContent = item.qty;
+    wrap.classList.toggle('has-val', item.qty > 0);
+  };
+  btnP.onclick = () => {
+    item.qty++;
+    valEl.textContent = item.qty;
+    wrap.classList.add('has-val');
+  };
+  return wrap;
+}
+
+function renderCustom(){
+  const wrap = document.getElementById('custom-rows');
+  wrap.innerHTML = '';
+  customItems.forEach((item, i) => {
+    const row = document.createElement('div'); row.className = 'custom-row';
+    const nameInp = document.createElement('input');
+    nameInp.type = 'text'; nameInp.value = item.name; nameInp.placeholder = '品目名';
+    nameInp.oninput = e => item.name = e.target.value;
+    const rmBtn = document.createElement('button'); rmBtn.className = 'rm-btn'; rmBtn.setAttribute('aria-label','削除');
+    rmBtn.innerHTML = '<i class="ti ti-x"></i>';
+    rmBtn.onclick = () => { customItems.splice(i, 1); renderCustom(); };
+    row.appendChild(nameInp);
+    row.appendChild(makeCustomStepper(item));
+    row.appendChild(rmBtn);
+    wrap.appendChild(row);
+  });
+}
+
+document.getElementById('add-custom').onclick = () => {
+  customItems.push({ name: '', qty: 1 });
+  renderCustom();
+  setTimeout(() => {
+    const inps = document.querySelectorAll('.custom-row input[type="text"]');
+    if(inps.length) inps[inps.length - 1].focus();
+  }, 50);
+};
+
+function renderPhotos(){
+  const grid = document.getElementById('photo-grid'); grid.innerHTML = '';
+  photos.forEach((p, i) => {
+    const wrap = document.createElement('div'); wrap.className = 'photo-thumb';
+    wrap.innerHTML = `<img src="${p.url}" alt="写真${i+1}"><button class="photo-del" aria-label="削除"><i class="ti ti-x" style="font-size:11px"></i></button>`;
+    wrap.querySelector('.photo-del').onclick = () => { photos.splice(i, 1); renderPhotos(); };
+    grid.appendChild(wrap);
+  });
+  if(photos.length < 9){
+    const add = document.createElement('button'); add.className = 'photo-add';
+    add.innerHTML = '<i class="ti ti-camera-plus"></i><span>追加</span>';
+    add.onclick = () => document.getElementById('file-input').click();
+    grid.appendChild(add);
+  }
+}
+
+document.getElementById('file-input').onchange = e => {
+  Array.from(e.target.files).forEach(f => {
+    if(photos.length >= 9) return;
+    const r = new FileReader();
+    r.onload = ev => { photos.push({ url: ev.target.result, file: f }); renderPhotos(); };
+    r.readAsDataURL(f);
+  });
+  e.target.value = '';
+};
+
+function showToast(msg, ok = true){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.background = ok ? '#3B6D11' : '#A32D2D';
+  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2800);
+}
+function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+document.getElementById('submit-btn').onclick = async () => {
+  const hotel    = document.getElementById('hotel-name').value.trim();
+  const date     = document.getElementById('survey-date').value;
+  const floor    = document.getElementById('floor').value;
+  const room     = document.getElementById('room-no').value.trim();
+  const roomType = document.getElementById('room-type').value;
+  if(!hotel || !date || !floor || !room){
+    showToast('⚠ 必須項目を入力してください', false); return;
+  }
+  const presetData = PRESET_ITEMS.filter(n => presetQty[n] > 0).map(n => ({ name: n, qty: presetQty[n] }));
+  const customData = customItems.filter(i => i.name.trim());
+  const payload = {
+    hotel, date, floor, room, roomType,
+    items: [...presetData, ...customData],
+    note: document.getElementById('note').value.trim(),
+    photoCount: photos.length,
+    submittedAt: new Date().toISOString()
+  };
+  const btn = document.getElementById('submit-btn');
+  btn.innerHTML = '<i class="ti ti-loader-2"></i> 送信中...'; btn.disabled = true;
+  try {
+    if(GAS_URL === 'YOUR_GAS_URL_HERE'){
+      await new Promise(r => setTimeout(r, 700));
+      showToast('✓ 送信しました（テストモード）');
+      console.log('送信データ:', JSON.stringify(payload, null, 2));
+    } else {
+      const fd = new FormData();
+      fd.append('json', JSON.stringify(payload));
+      for(let i = 0; i < photos.length; i++) fd.append('photo' + i, photos[i].url.split(',')[1]);
+      await fetch(GAS_URL, { method: 'POST', body: fd, mode: 'no-cors' });
+      showToast('✓ シートに記録しました');
+    }
+  } catch(err){
+    showToast('通信エラーが発生しました', false);
+  } finally {
+    btn.innerHTML = '<i class="ti ti-send"></i> 送信する'; btn.disabled = false;
+  }
+};
+
+buildPresetTable();
+renderCustom();
+renderPhotos();
+</script>
+</body>
+</html>
