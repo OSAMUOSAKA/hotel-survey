@@ -70,6 +70,9 @@ header h1{font-size:17px;font-weight:600}
 .photo-del{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.58);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff}
 .photo-add{aspect-ratio:1;border-radius:var(--radius-sm);border:0.5px dashed var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;background:none;font-size:12px;color:var(--text3);-webkit-tap-highlight-color:transparent}
 .photo-add i{font-size:26px}
+.photo-src-btn{padding:9px 0;border:0.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg);cursor:pointer;font-size:14px;color:var(--text2);display:flex;align-items:center;justify-content:center;gap:5px;-webkit-tap-highlight-color:transparent}
+.photo-src-btn:active{background:var(--border);color:var(--text1)}
+.photo-src-btn i{font-size:16px}
 .submit-btn{width:100%;padding:15px;background:#185FA5;color:#fff;border:none;border-radius:var(--radius);font-size:17px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:.5rem;-webkit-tap-highlight-color:transparent}
 .submit-btn:active{opacity:.85;transform:scale(.98)}
 .submit-btn i{font-size:20px}
@@ -141,7 +144,16 @@ header h1{font-size:17px;font-weight:600}
 <div class="section">
   <div class="sec-title"><i class="ti ti-camera"></i>部屋の写真</div>
   <div class="photo-grid" id="photo-grid"></div>
-  <input type="file" id="file-input" accept="image/*" capture="environment" multiple style="display:none">
+  <div style="display:flex;gap:8px;margin-top:6px">
+    <button class="photo-src-btn" id="btn-camera" style="flex:1">
+      <i class="ti ti-camera"></i>カメラ撮影
+    </button>
+    <button class="photo-src-btn" id="btn-gallery" style="flex:1">
+      <i class="ti ti-photo"></i>アルバムから
+    </button>
+  </div>
+  <input type="file" id="file-camera"  accept="image/*" capture="environment" multiple style="display:none">
+  <input type="file" id="file-gallery" accept="image/*" multiple style="display:none">
 </div>
 
 <button class="submit-btn" id="submit-btn">
@@ -249,6 +261,37 @@ document.getElementById('add-custom').onclick = () => {
   }, 50);
 };
 
+// 画像圧縮（Canvas経由でリサイズ・品質調整）
+function compressImage(file, maxSizeKB = 300, maxW = 1280) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if(w > maxW){ h = Math.round(h * maxW / w); w = maxW; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        let q = 0.85;
+        const tryCompress = () => {
+          const dataUrl = canvas.toDataURL('image/jpeg', q);
+          const kb = Math.round((dataUrl.length * 3) / 4 / 1024);
+          if(kb <= maxSizeKB || q <= 0.3){
+            resolve(dataUrl);
+          } else {
+            q -= 0.1;
+            tryCompress();
+          }
+        };
+        tryCompress();
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function renderPhotos(){
   const grid = document.getElementById('photo-grid'); grid.innerHTML = '';
   photos.forEach((p, i) => {
@@ -257,23 +300,28 @@ function renderPhotos(){
     wrap.querySelector('.photo-del').onclick = () => { photos.splice(i, 1); renderPhotos(); };
     grid.appendChild(wrap);
   });
-  if(photos.length < 9){
-    const add = document.createElement('button'); add.className = 'photo-add';
-    add.innerHTML = '<i class="ti ti-camera-plus"></i><span>追加</span>';
-    add.onclick = () => document.getElementById('file-input').click();
-    grid.appendChild(add);
-  }
+  // ボタンのdisabled制御
+  const over = photos.length >= 9;
+  ['btn-camera','btn-gallery'].forEach(id => {
+    const btn = document.getElementById(id);
+    if(btn) btn.disabled = over;
+  });
 }
 
-document.getElementById('file-input').onchange = e => {
-  Array.from(e.target.files).forEach(f => {
-    if(photos.length >= 9) return;
-    const r = new FileReader();
-    r.onload = ev => { photos.push({ url: ev.target.result, file: f }); renderPhotos(); };
-    r.readAsDataURL(f);
-  });
-  e.target.value = '';
-};
+async function handleFiles(files){
+  for(const f of Array.from(files)){
+    if(photos.length >= 9) break;
+    showToast('圧縮中...', true);
+    const url = await compressImage(f);
+    photos.push({ url });
+  }
+  renderPhotos();
+}
+
+document.getElementById('btn-camera').onclick  = () => document.getElementById('file-camera').click();
+document.getElementById('btn-gallery').onclick = () => document.getElementById('file-gallery').click();
+document.getElementById('file-camera').onchange  = e => { handleFiles(e.target.files); e.target.value = ''; };
+document.getElementById('file-gallery').onchange = e => { handleFiles(e.target.files); e.target.value = ''; };
 
 function showToast(msg, ok = true){
   const t = document.getElementById('toast');
@@ -310,7 +358,7 @@ document.getElementById('submit-btn').onclick = async () => {
     } else {
       const fd = new FormData();
       fd.append('json', JSON.stringify(payload));
-      for(let i = 0; i < photos.length; i++) fd.append('photo' + i, photos[i].url.split(',')[1]);
+      for(let i = 0; i < photos.length; i++) fd.append('photo' + i, photos[i].url.split(',')[1]); // 圧縮済みbase64
       await fetch(GAS_URL, { method: 'POST', body: fd, mode: 'no-cors' });
       showToast('✓ シートに記録しました');
     }
